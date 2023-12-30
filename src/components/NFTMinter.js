@@ -10,8 +10,7 @@ const NFTMinter = () => {
   const [imageFile, setImageFile] = useState(null);
   const [isMinting, setMinting] = useState(false); 
   const [nfts, setNFTs] = useState([]); 
-  const [isFetchingNFTs, setFetchingNFTs] = useState(false);
-
+ 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
 
@@ -26,48 +25,8 @@ const NFTMinter = () => {
     setTitle(e.target.value);
   };
   
-  const handleDescriptionChange = (e) => {
-    setDescription(e.target.value);
-  };
-
-
-  const getNFts = async () => {
-    if (!wallet.publicKey) {
-      return;
-    }
-
-    setFetchingNFTs(true);
-    try {
-      const myNfts = await mx.nfts().findAllByOwner({
-        owner: wallet.publicKey.toBase58(),
-      });
   
-      const nftPromises = myNfts.map(async (nft) => {
-        try {
-          const response = await fetch(nft.uri);
-          const data = await response.json();
-          const nftData = {
-            imageSrc: data.image,
-            title: data.name,
-          };
-          return nftData;
-        } catch (error) {
-          console.error(error);
-          throw new Error('Error fetching NFT. Please try again later.');
-        }
-      });
-  
-      const fetchedNFTs = await Promise.all(nftPromises);
-      setNFTs(fetchedNFTs);
-      
-    } catch (error) {
-      console.error(error);
-      toast.error('Error fetching NFT. Please try again later.');
-    }finally{
-      setFetchingNFTs(false);
-    }
-  };
-
+ 
   async function uploadNFTURI(nftURI, walletAddress) {
     try {
       const myHeaders = new Headers();
@@ -189,9 +148,7 @@ const NFTMinter = () => {
     }
   };
 
-  useEffect(() => {
-    getNFts();
-  }, []);
+ 
 
   return (
     <div className="container mx-auto mt-8 grid grid-cols-1 gap-4 items-center">
@@ -208,15 +165,11 @@ const NFTMinter = () => {
       <button
         className={`col-span-2 bg-red-500 hover:bg-orange-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline ${isMinting ? 'opacity-50 cursor-not-allowed' : ''}`}
         disabled={isMinting}
+        onClick={mintNFT}
       >
         {isMinting ? 'Minting...' : 'Mint NFT'}
       </button>
-      <div className='text-left'> {/* Center align text */}
-        <strong className="text-2xl my-4">Available NFTs:</strong>
-        {!isFetchingNFTs ? (nfts.length !== 0 ? nfts.map((nft, index) => (
-          <NFTListItem key={index} imageSrc={nft.imageSrc} title={nft.title} />
-        )) : <p className="text-xl">Currently empty.</p>) : <p className="text-xl">Loading NFTs...</p>}
-      </div>
+
     </div>
   );
 };
